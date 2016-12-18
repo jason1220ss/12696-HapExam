@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!--
+  ~ #{copyright}#
+  -->
+
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+
+<mapper namespace="hbi.core.HapProject.mapper.OrderHeadersMapper">
+    <resultMap id="OrderHeadersMapperResult" type="hbi.core.HapProject.dto.OrderHeaders">
+        <id property="headerId" column="header_id"></id>
+        <result property="companyId" column="company_id"></result>
+        <result property="customerId" column="customer_id"></result>
+        <result property="orderNumber" column="order_number"></result>
+        <result property="orderDate" column="order_date"></result>
+        <result property="orderStatus" column="order_status"></result>
+        <result property="totalMoney" column="total_money"></result>
+        <association property="companys" javaType="hbi.core.HapProject.dto.Companys">
+            <id property="companyId" column="company_id"></id>
+            <result property="companyName" column="company_name"></result>
+        </association>
+        <association property="customers" javaType="hbi.core.HapProject.dto.Customers">
+            <id property="customerId" column="customer_id"></id>
+            <result property="customerName" column="customer_name"></result>
+        </association>
+        <association property="items" javaType="hbi.core.HapProject.dto.Items">
+            <id property="inventoryItemId" column="inventory_item_id"></id>
+            <result property="itemCode" column="item_code"></result>
+        </association>
+        <association property="orderLines" javaType="hbi.core.HapProject.dto.OrderLines">
+            <id property="lineId" column="line_id"></id>
+            <result property="inventoryItemId" column="inventory_item_id"></result>
+            <result property="orderdQuantity" column="orderd_quantity"></result>
+            <result property="unitSellingPrice" column="unit_selling_price"></result>
+        </association>
+    </resultMap>
+
+    <!--<parameterMap type="hbi.core.HapProject.dto.OrderHeaders" id="OrderHeadersParameterMap">-->
+        <!--<parameter property="companyId" resultMap="OrderHeadersMapperResult" />-->
+        <!--<parameter property="customerId" resultMap="OrderHeadersMapperResult" />-->
+        <!--<parameter property="orderNumber" resultMap="OrderHeadersMapperResult" />-->
+        <!--<parameter property="headerId" resultMap="OrderHeadersMapperResult" />-->
+        <!--<parameter property="inventoryItemId" resultMap="OrderHeadersMapperResult" />-->
+        <!--<parameter property="orderStatus" resultMap="OrderHeadersMapperResult" />-->
+    <!--</parameterMap>-->
+
+
+    <select id="getAllOrders" resultMap="OrderHeadersMapperResult" parameterType="hbi.core.HapProject.dto.OrderHeaders">
+        select *, (l.ORDERD_QUANTITY*l.UNIT_SELLING_PRICE) as total_money
+         from hap_ar_customers c, hap_inv_inventory_items i,
+        hap_om_order_headers h, hap_om_order_lines l,hap_org_companys o
+        where h.COMPANY_ID = o.COMPANY_ID and h.CUSTOMER_ID = c.CUSTOMER_ID
+        and h.HEADER_ID = l.HEADER_ID and l.INVENTORY_ITEM_ID = i.INVENTORY_ITEM_ID
+
+            <if test="companyId != null">
+                  and h.company_Id = #{companyId}
+            </if>
+            <if test="customerId != null">
+                  and h.customer_Id = #{customerId}
+            </if>
+            <if test="orderNumber != null">
+                and h.order_number = #{orderNumber}
+            </if>
+            <!--<if test="headerId != null">-->
+                <!--and h.header_id = #{headerId}-->
+            <!--</if>-->
+            <if test="inventoryItemId != null">
+                and i.inventory_item_id = #{inventoryItemId}
+            </if>
+            <if test="orderStatus != null">
+                  and h.order_status = #{orderStatus}
+            </if>
+
+    </select>
+</mapper>

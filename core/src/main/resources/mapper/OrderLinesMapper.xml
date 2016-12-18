@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!--
+  ~ #{copyright}#
+  -->
+
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+
+<mapper namespace="hbi.core.HapProject.mapper.OrderLinesMapper">
+    <resultMap id="OrderLinesMapperResult" type="hbi.core.HapProject.dto.OrderLines">
+        <id column="line_id" property="lineId"></id>
+        <result column="line_number" property="lineNumber"></result>
+        <result column="order_quantity_uom" property="orderQuantityUom"></result>
+        <result column="orderd_quantity" property="orderdQuantity"></result>
+        <result column="unit_selling_price" property="unitSellingPrice"></result>
+        <result column="total_money" property="totalMoney"></result>
+        <result column="description" property="description"></result>
+        <result column="item_description" property="itemDescription"></result>
+        <result column="inventory_item_id" property="inventoryItemId"></result>
+        <association property="items" javaType="hbi.core.HapProject.dto.Items">
+            <id column="inventory_item_id" property="inventoryItemId"></id>
+            <result column="item_description" property="itemDescription"></result>
+        </association>
+    </resultMap>
+
+
+
+
+
+    <select id="getAllLines" resultMap="OrderLinesMapperResult" parameterType="hbi.core.HapProject.dto.OrderLines">
+          select *,(l.ORDERD_QUANTITY*l.UNIT_SELLING_PRICE) as total_money
+          from hap_inv_inventory_items i,hap_om_order_lines l
+          where l.INVENTORY_ITEM_ID = i.INVENTORY_ITEM_ID
+    </select>
+</mapper>

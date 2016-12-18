@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html>
+<#include "include/header.html">
+<body>
+
+<script src="${base.contextPath}/common/code?requestStatusdata=SYS.IF.REQUEST_STATUS"
+        type="text/javascript">
+</script>
+<script>
+    var viewModel = kendo.observable({
+        comboboxSource: [{
+            text: "新建",
+            value: "NEW"
+        }, {
+            text: "已提交",
+            value: "SUBMITED"
+        }, {
+            text: "已审批",
+            value: "APPROVED"
+        }, {
+            text: "已拒绝",
+            value: "REJECTED"
+        }],
+        model: {},
+        saveFunction: function () {
+            $('#grid').data('kendoGrid').saveChanges();
+        },
+        queryResource: function (e) {
+            $('#grid').data('kendoGrid').dataSource.page(1);
+        },
+        resetForm: function (e) {
+            var formData = viewModel.model.toJSON();
+            for (var k in formData) {
+                viewModel.model.set(k, null);
+            }
+        },
+        exportExcelFunction: function (e) {
+            var exportsConfig = {};
+            var columns = [];
+            var index = 0;
+            for (var i = 0; i < grid.columns.length; i++) {
+                if (grid.columns[i].field != null) {
+                    var columnsInfo = {};
+                    columnsInfo["name"] = grid.columns[i].field;
+                    columnsInfo["title"] = grid.columns[i].title;
+                    columnsInfo["width"] = grid.columns[i].width;
+                    var align = $('tbody').find('tr')[0].getElementsByTagName('td')[i].style.textAlign;
+                    if (align != null || align != '') {
+                        columnsInfo["align"] = align;
+                    }
+                    if (dataSource.options.schema.model.fields[grid.columns[i].field] != null) {
+                        columnsInfo["type"] = dataSource.options.schema.model.fields[grid.columns[i].field].type;
+                    }
+                    columns[index] = columnsInfo;
+                    index++;
+                }
+            }
+            exportsConfig["columnsInfo"] = columns;
+
+            exportsConfig["param"] = Hap.prepareQueryParameter(viewModel.model.toJSON());
+            exportsConfig["fileName"] = "function";
+            debugger
+            var $inputImg = $('<input>').attr({name: "config", value: kendo.stringify(exportsConfig)});
+            var $form = $("<form>");
+            $form.attr({
+                target: '_self',
+                method: 'post',
+                action: '${base.contextPath}/function/export'
+            }).append($inputImg);
+            $form.submit();
+
+        }
+
+    });
+</script>
+
+
+    <div id="content-container">
+            <div class="panel" id="page-content" style="padding: 0px;border:none;box-shadow: none;">
+                <form class="form-horizontal" id="myForm">
+                    <header>
+                        <span>订单查询</span>
+                    </header>
+                    <div class="panel-body">
+                        <div class="row" style="margin-bottom: 10px;">
+                            <div class="col-sm-4">
+                                <div class="form-group">
+                                    <label class="col-sm-4 control-label">公司名称：</label>
+                                    <div class="col-sm-8">
+                                        <input id="companysLOV" style="width: 200px" data-bind="value:model.companyId"/>
+                                    </div>
+                                    <script>
+                                        $("#companysLOV").kendoLov({
+                                            code: "company_code",
+                                            contextPath: '${base.contextPath}',
+                                            locale: '${base.locale}'
+                                        });
+                                    </script>
+                                </div>
+                            </div>
+
+                            <div class="col-sm-4">
+                                <div class="form-group">
+                                    <label class="col-sm-4 control-label">客户名称：</label>
+                                    <div class="col-sm-8">
+                                        <input id="customersLOV" style="width: 200px" data-bind="value:model.customerId"/>
+                                    </div>
+                                    <script>
+                                        $("#customersLOV").kendoLov({
+                                            code:"customer_code",
+                                            contextPath:'${base.contextPath}',
+                                            locale:'${base.locale}'
+                                        });
+                                    </script>
+                                </div>
+                            </div>
+
+                            <div class="col-sm-4">
+                                <div class="form-group">
+                                    <label class="col-sm-4 control-label">销售订单号：</label>
+                                    <div class="col-sm-8">
+                                        <input id="orderNumber" style="width: 200px" type="text" data-bind="value:model.orderNumber"/>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-sm-4">
+                                <div class="form-group">
+                                    <label class="col-sm-4 control-label">物料：</label>
+                                    <div class="col-sm-8">
+                                        <input id="itemLOV" style="width: 200px" data-bind="value:model.inventoryItemId"/>
+                                    </div>
+                                    <script>
+                                        $("#itemLOV").kendoLov({
+                                            code:"items_code",
+                                            contextPath:'${base.contextPath}',
+                                            locale:'${base.locale}'
+                                        });
+                                    </script>
+                                </div>
+                            </div>
+
+                            <div class="col-sm-4">
+                                <div class="form-group">
+                                    <label class="col-sm-4 control-label">订单状态：</label>
+                                    <div class="col-sm-8">
+                                        <input id="combobox" style="width: 200px" name="combobox" required placeholder="订单状态" data-role="combobox" data-value-primitive="true" data-text-field="text" data-value-field="value"
+                                               data-filter= "startswith" data-clear-no-data="true" data-bind="enabled: isEnabled, source: comboboxSource,value:model.orderStatus"  />
+
+                                        <span class="k-invalid-msg" data-for="combobox"></span>
+                                    </div>
+
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+                </form>
+                <div class="row" id="toolbar-btn">
+                    <div class="col-sm-4">
+                        <span class="btn btn-default" data-bind="click:queryResource"><@spring.message "hap.query"/></span>
+                        <span class="btn btn-default" data-bind="click:resetForm"><@spring.message "hap.reset"/></span>
+                        <span class="btn btn-default" data-bind="click:exportExcelFunction"><@spring.message "hap.exportexcel"/></span>
+                    </div>
+                </div>
+                <script>kendo.bind($('#toolbar-btn'), viewModel);</script>
+            </div>
+            <div class="pull-left" style="padding-bottom:10px;padding-left: 10px">
+                <a href="addorders.html">
+                    <span class="btn btn-default">新增</span>
+                </a>
+            </div>
+            <div style="clear:both">
+                <div id="grid"  class="table"></div>
+            </div>
+
+    </div>
+
+    <script>
+        kendo.bind($('#page-content'), viewModel);
+//        $(function() {
+            var dataSource = new kendo.data.DataSource({
+                transport:{
+                    read:{
+                        url:"/orders/query",
+                        dataType:"json",
+                        contentType:"application/json",
+                        type: "post"
+                    },
+                    parameterMap : function(options,operation) { //定义提交给后台携带的参数
+                        var map = {};
+                        if (operation !== "read") {
+                            return kendo.stringify(Hap.prepareQueryParameter(viewModel.model.toJSON(), options));
+                        }else{
+                            return kendo.stringify(Hap.prepareQueryParameter(viewModel.model.toJSON(), options));
+                        }
+                    }
+                },
+                batch:true,               //可批量操作
+                pageSize:10,             //每页显示条数
+                serverPaging:true,      //支持分页功能
+                serverSorting:true,     //支持排序功能
+                serverFiltering:true,   //支持搜索功能
+
+                schema:{
+                    model:{
+                        id:"headerId",
+                        fields:{
+                            orderNumber:{type:"String", validation:{request:true}},
+                            companyName:{type:"String", validation:{request:true}},
+                            customerName:{type:"String", validation:{request:true}},
+                            orderDate:{type:"date", validation:{request:true}},
+                            orderStatus:{type:"String", validation:{request:true}},
+                            totalMoney:{type:"Long", validation:{request:true}}
+                        }
+                    }
+                }
+            });
+
+            var grid = $("#grid").kendoGrid({
+                dataSource:dataSource,
+                pageable:{  //分页信息选项设置
+                    pageSizes: ['All', 5, 10, 20, 50],
+                    refresh: true,
+//                    pageSizes: true,        //设置可选择每页显示的条数
+                    buttonCount: 5          //设置最多显示的页数
+                },
+                editable:false,
+                selectable : 'multiple, rowbox',
+                height:300,
+//                toolbar: [{
+//                    name: "create",
+//                    template: '<span class="btn btn-default k-grid-add">#=text#</a></span>'
+//                }],
+                columns:[
+                    {
+                    field:"orderNumber",         //dataSource中与data对应的域（field）的名称
+                    attributes:{style:"text-align:center"},
+                    title:"销售订单号",      //表头名称
+                    width:50          //列宽
+                },{
+                    field:"companys.companyName",
+                    attributes: {style: "text-align:center"},
+                    title:"公司名称",
+                    width:80
+                },{
+                    field:"customers.customerName",
+                    attributes: {style: "text-align:center"},
+                    title:"客户名称",
+                    width:80
+                },{
+                    field:"orderDate",
+                    attributes: {style: "text-align:center"},
+                    title:"订单日期",
+                    width:100,
+                    format: "{0: yyyy-MM-dd HH:mm:ss}" //格式化时间
+                },{
+                    field:"orderStatus",
+                    attributes: {style: "text-align:center"},
+                    title:"订单状态",
+                    width:50
+                },{
+                    field:"totalMoney",
+                    attributes: {style: "text-align:center"},
+                    title:"订单金额",
+                    width:80
+                }]
+//                ,save: function (e) {
+//                    console.log('save')
+//                }
+            }).data("kendoGrid");
+
+            $("#grid thead>tr th").css("text-align","center");
+            //自动根据当前屏幕大小调整表格
+            Hap.autoResizeGrid("#grid");
+//        });
+    </script>
+
+</body>
+</html>
